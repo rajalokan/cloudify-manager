@@ -338,6 +338,7 @@ class BaseServerTestCase(unittest.TestCase):
         test_config.authorization_permissions = auth_dict['permissions']
         test_config.security_encryption_key = \
             'f2ytTjQ-R2yKFMzgqDAw6vgQIHGZ9SiJoW-BhktapFQ='
+        test_config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         return test_config
 
     def _version_url(self, url):
