@@ -516,4 +516,17 @@ class NodeInstance(SQLResourceBase):
         self._set_parent(node)
         self.node = node
 
+
+class Operation(SQLResourceBase):
+    __tablename__ = 'operations'
+
+    name = db.Column(db.Text)
+    state = db.Column(db.Text, nullable=False)
+
+    _execution_fk = foreign_key(Execution._storage_id)
+
+    @declared_attr
+    def execution(cls):
+        return one_to_many_relationship(cls, Execution, cls._execution_fk)
+
 # endregion

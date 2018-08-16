@@ -100,3 +100,13 @@ class AgentResponse(BaseResponse):
         'node': fields.String,
         'deployment': fields.String
     }
+
+
+@swagger.model
+class OperationResponse(BaseResponse):
+    resource_fields = {
+        'id': fields.String,
+        'name': fields.String,
+        'state': fields.String,
+        'execution': fields.Raw,
+    }
