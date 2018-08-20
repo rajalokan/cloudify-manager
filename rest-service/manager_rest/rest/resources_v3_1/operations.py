@@ -13,7 +13,6 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
-from flask_restful.reqparse import Argument
 from manager_rest.rest.rest_utils import (
     get_args_and_verify_arguments,
     get_json_and_verify_params,
@@ -34,9 +33,9 @@ class Operations(SecuredResource):
     @exceptions_handled
     @marshal_with(models.Operation)
     def get(self, _include=None, **kwargs):
-        args = get_args_and_verify_arguments(
-            [Argument('execution_id', type=unicode, required=True)]
-        )
+        args = get_args_and_verify_arguments({
+            'execution_id': {'type': unicode, 'required': True}
+        })
         execution_id = args.get('execution_id')
         return get_storage_manager().list(
             models.Operation,
@@ -48,10 +47,10 @@ class OperationsId(SecuredResource):
     @exceptions_handled
     @marshal_with(models.Operation)
     def put(self, operation_id, **kwargs):
-        params = get_json_and_verify_params(
-            [Argument('name', type=str, required=True),
-             Argument('execution_id', type=str, required=True)]
-        )
+        params = get_json_and_verify_params({
+            'name': {'type': unicode, 'required': True},
+            'execution_id': {'type': unicode, 'required': True},
+        })
         operation = get_resource_manager().create_operation(
             operation_id,
             name=params['name'],
@@ -63,7 +62,7 @@ class OperationsId(SecuredResource):
     @marshal_with(models.Operation)
     def patch(self, operation_id, **kwargs):
         request_dict = get_json_and_verify_params(
-            {'state': {'type': str}}
+            {'state': {'type': unicode}}
         )
         sm = get_storage_manager()
         instance = sm.get(models.Operation, operation_id, locking=True)
