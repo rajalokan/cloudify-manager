@@ -41,8 +41,7 @@ class Operations(SecuredResource):
         ])
         sm = get_storage_manager()
         execution_id = args.get('execution_id')
-        execution = sm.self.sm.list(models.Execution,
-                                    filters={'id': execution_id})[0]
+        execution = sm.list(models.Execution, filters={'id': execution_id})[0]
         return sm.list(
             models.Operation,
             filters={'execution': execution}
