@@ -35,8 +35,8 @@ from manager_rest.security import SecuredResource
 class Operations(SecuredResource):
     @exceptions_handled
     @authorize('operations')
-    @paginate
     @marshal_with(models.Operation)
+    @paginate
     def get(self, _include=None, pagination=None, **kwargs):
         args = get_args_and_verify_arguments([
             Argument('execution_id', type=unicode, required=True)
