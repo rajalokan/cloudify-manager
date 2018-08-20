@@ -27,6 +27,7 @@ from manager_rest.storage import (
     get_storage_manager,
     models
 )
+from ..responses_v3 import OperationResponse
 from manager_rest.security.authorization import authorize
 from manager_rest.resource_manager import get_resource_manager
 from manager_rest.security import SecuredResource
@@ -35,7 +36,7 @@ from manager_rest.security import SecuredResource
 class Operations(SecuredResource):
     @exceptions_handled
     @authorize('operations')
-    @marshal_with(models.Operation)
+    @marshal_with(OperationResponse)
     @paginate
     def get(self, _include=None, pagination=None, **kwargs):
         args = get_args_and_verify_arguments([
