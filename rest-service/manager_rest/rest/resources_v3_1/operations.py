@@ -13,6 +13,7 @@
 #  * See the License for the specific language governing permissions and
 #  * limitations under the License.
 
+from flask_restful.reqparse import Argument
 from manager_rest.rest.rest_utils import (
     get_args_and_verify_arguments,
     get_json_and_verify_params,
@@ -35,9 +36,9 @@ class Operations(SecuredResource):
     @authorize('operations')
     @marshal_with(models.Operation)
     def get(self, _include=None, **kwargs):
-        args = get_args_and_verify_arguments({
-            'execution_id': {'type': unicode, 'required': True}
-        })
+        args = get_args_and_verify_arguments([
+            Argument('execution_id', type=unicode, required=True)
+        ])
         execution_id = args.get('execution_id')
         return get_storage_manager().list(
             models.Operation,
