@@ -39,10 +39,13 @@ class Operations(SecuredResource):
         args = get_args_and_verify_arguments([
             Argument('execution_id', type=unicode, required=True)
         ])
+        sm = get_storage_manager()
         execution_id = args.get('execution_id')
-        return get_storage_manager().list(
+        execution = sm.self.sm.list(models.Execution,
+                                    filters={'id': execution_id})[0]
+        return sm.list(
             models.Operation,
-            filters={'_execution_fk': execution_id}
+            filters={'execution': execution}
         ).items
 
 
