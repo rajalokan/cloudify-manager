@@ -48,7 +48,7 @@ class Operations(SecuredResource):
             models.Operation,
             filters={'execution': execution},
             pagination=pagination
-        ).items
+        )
 
 
 class OperationsId(SecuredResource):
