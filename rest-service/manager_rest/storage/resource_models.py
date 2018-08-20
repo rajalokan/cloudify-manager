@@ -530,4 +530,6 @@ class Operation(SQLResourceBase):
     def execution(cls):
         return one_to_many_relationship(cls, Execution, cls._execution_fk)
 
+    execution_id = association_proxy('execution', 'id')
+
 # endregion
