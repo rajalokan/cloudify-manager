@@ -1245,13 +1245,17 @@ class ResourceManager(object):
 
     def create_operation(self, operation_id, name, execution_id):
         execution = self.sm.list(models.Execution,
-                                 filters={'id': execution_id})[0]
+                                 filters={'id': execution_id},
+                                 get_all_results=True,
+                                 all_tenants=True)[0]
         operation = models.Operation(
             id=operation_id,
             name=name,
             _execution_fk=execution._storage_id,
             created_at=utils.get_formatted_timestamp(),
-            state='started'
+            state='started',
+            _tenant_id=execution._tenant_id,
+            _creator_id=execution._creator_id
         )
         self.sm.put(operation)
         return operation
