@@ -21,6 +21,7 @@ from manager_rest.rest.rest_utils import (
 from manager_rest.rest.rest_decorators import (
     exceptions_handled,
     marshal_with,
+    paginate
 )
 from manager_rest.storage import (
     get_storage_manager,
@@ -34,8 +35,9 @@ from manager_rest.security import SecuredResource
 class Operations(SecuredResource):
     @exceptions_handled
     @authorize('operations')
+    @paginate
     @marshal_with(models.Operation)
-    def get(self, _include=None, **kwargs):
+    def get(self, _include=None, pagination=None, **kwargs):
         args = get_args_and_verify_arguments([
             Argument('execution_id', type=unicode, required=True)
         ])
@@ -44,7 +46,8 @@ class Operations(SecuredResource):
         execution = sm.list(models.Execution, filters={'id': execution_id})[0]
         return sm.list(
             models.Operation,
-            filters={'execution': execution}
+            filters={'execution': execution},
+            pagination=pagination
         ).items
 
 
