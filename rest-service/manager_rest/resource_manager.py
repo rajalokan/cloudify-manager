@@ -1244,7 +1244,8 @@ class ResourceManager(object):
         instance_dict['resource_availability'] = resource_availability
 
     def create_operation(self, operation_id, name, execution_id):
-        execution = self.sm.get(models.Execution, execution_id)
+        execution = self.sm.list(models.Execution,
+                                 filters={'id': execution_id})[0]
         operation = models.Operation(
             id=operation_id,
             name=name,
