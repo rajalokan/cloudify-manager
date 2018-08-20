@@ -1244,10 +1244,11 @@ class ResourceManager(object):
         instance_dict['resource_availability'] = resource_availability
 
     def create_operation(self, operation_id, name, execution_id):
+        execution = self.sm.get(models.Execution, execution_id)
         operation = models.Operation(
             id=operation_id,
             name=name,
-            _execution_fk=execution_id,
+            _execution_fk=execution._storage_id,
             created_at=utils.get_formatted_timestamp(),
             state='started'
         )
