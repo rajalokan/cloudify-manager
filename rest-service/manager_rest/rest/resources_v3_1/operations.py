@@ -25,12 +25,14 @@ from manager_rest.storage import (
     get_storage_manager,
     models
 )
+from manager_rest.security.authorization import authorize
 from manager_rest.resource_manager import get_resource_manager
 from manager_rest.security import SecuredResource
 
 
 class Operations(SecuredResource):
     @exceptions_handled
+    @authorize('operations')
     @marshal_with(models.Operation)
     def get(self, _include=None, **kwargs):
         args = get_args_and_verify_arguments({
@@ -45,6 +47,7 @@ class Operations(SecuredResource):
 
 class OperationsId(SecuredResource):
     @exceptions_handled
+    @authorize('operations')
     @marshal_with(models.Operation)
     def put(self, operation_id, **kwargs):
         params = get_json_and_verify_params({
@@ -59,6 +62,7 @@ class OperationsId(SecuredResource):
         return operation, 201
 
     @exceptions_handled
+    @authorize('operations')
     @marshal_with(models.Operation)
     def patch(self, operation_id, **kwargs):
         request_dict = get_json_and_verify_params(
