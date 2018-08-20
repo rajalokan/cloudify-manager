@@ -522,6 +522,7 @@ class Operation(SQLResourceBase):
 
     name = db.Column(db.Text)
     state = db.Column(db.Text, nullable=False)
+    created_at = db.Column(UTCDateTime, nullable=False, index=True)
 
     _execution_fk = foreign_key(Execution._storage_id)
 

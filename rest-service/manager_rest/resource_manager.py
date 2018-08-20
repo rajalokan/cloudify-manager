@@ -1243,6 +1243,17 @@ class ResourceManager(object):
         # adding it to the response.
         instance_dict['resource_availability'] = resource_availability
 
+    def create_operation(self, operation_id, name, execution_id):
+        operation = models.Operation(
+            id=operation_id,
+            name=name,
+            _execution_fk=execution_id,
+            created_at=utils.get_formatted_timestamp(),
+            state='started'
+        )
+        self.sm.put(operation)
+        return operation
+
     def list_agents(self, deployment_id=None, node_ids=None,
                     node_instance_ids=None, install_method=None):
         filters = {}

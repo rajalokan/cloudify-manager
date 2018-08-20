@@ -95,7 +95,9 @@ def setup_resources(api):
         'SecretsSetGlobal': 'secrets/<string:key>/set-global',
         'SecretsSetVisibility': 'secrets/<string:key>/set-visibility',
         'ManagerConfig': 'config',
-        'Agents': 'agents'
+        'Agents': 'agents',
+        'Operations': 'operations',
+        'OperationsId': 'operations/<string:operation_id>'
     }
 
     # Set version endpoint as a non versioned endpoint
