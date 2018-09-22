@@ -29,10 +29,12 @@ from manager_rest import config
 from manager_rest.storage import get_storage_manager
 from manager_rest.constants import (
     PROVIDER_CONTEXT_ID,
-    FILE_SERVER_PLUGINS_FOLDER
+    FILE_SERVER_PLUGINS_FOLDER,
+    FILE_SERVER_UPLOADED_BLUEPRINTS_FOLDER
 )
-from manager_rest.manager_exceptions import InvalidPluginError
-from manager_rest.storage.models import ProviderContext, Plugin
+from manager_rest.manager_exceptions import InvalidPluginError,\
+    InvalidBlueprintError
+from manager_rest.storage.models import ProviderContext, Plugin, Blueprint
 
 
 def get_parser_context(sm=None):
@@ -74,14 +76,20 @@ class ResolverWithPlugins(DefaultImportResolver):
     The version is optional
     """
     PREFIX = 'plugin:'
+    BLUEPRINT = 'blueprint:'
 
     def fetch_import(self, import_url):
         if self._is_plugin_url(import_url):
             import_url = self._resolve_plugin_yaml_url(import_url)
+        elif self._is_blueprint_url(import_url):
+            import_url = self._resolve_blueprint_yaml_url(import_url)
         return super(ResolverWithPlugins, self).fetch_import(import_url)
 
     def _is_plugin_url(self, import_url):
         return import_url.startswith(self.PREFIX)
+
+    def _is_blueprint_url(self, import_url):
+        return import_url.startswith(self.BLUEPRINT)
 
     def _make_plugin_filters(self, plugin_spec):
         """Parse the plugin spec to a dict of filters for the sql query
@@ -113,6 +121,20 @@ class ResolverWithPlugins(DefaultImportResolver):
         plugin = self._find_plugin(name, plugin_filters)
         return self._make_plugin_yaml_url(plugin)
 
+    def _resolve_blueprint_yaml_url(self, import_url):
+        main_blueprint = import_url.replace(self.BLUEPRINT, '', 1).strip()
+        blueprint = self._find_blueprint(main_blueprint)
+        return self._make_blueprint_yaml_url(blueprint)
+
+    @staticmethod
+    def _find_blueprint(name):
+        sm = get_storage_manager()
+        blueprint = sm.get(Blueprint, name)
+        if not blueprint:
+            raise InvalidBlueprintError(
+                'Blueprint {0} not found'.format(name))
+        return blueprint
+
     def _find_plugin(self, name, filters):
         filters['package_name'] = name
         sm = get_storage_manager()
@@ -124,6 +146,16 @@ class ResolverWithPlugins(DefaultImportResolver):
                 'Plugin {0}{1} not found'.format(name, version_message))
         return max(plugins,
                    key=lambda plugin: LooseVersion(plugin.package_version))
+
+    @staticmethod
+    def _make_blueprint_yaml_url(blueprint):
+        blueprint_path = os.path.join(
+            config.instance.file_server_root,
+            FILE_SERVER_UPLOADED_BLUEPRINTS_FOLDER,
+            blueprint.id)
+        yaml_files = glob.glob(os.path.join(blueprint_path, '*.yaml'))
+        filename = os.path.join(blueprint_path, yaml_files[0])
+        return 'file://{0}'.format(filename)
 
     def _make_plugin_yaml_url(self, plugin):
         plugin_path = os.path.join(
@@ -137,3 +169,20 @@ class ResolverWithPlugins(DefaultImportResolver):
                 .format(plugin.package_name, len(yaml_files)))
         filename = os.path.join(plugin_path, yaml_files[0])
         return 'file://{0}'.format(filename)
+
+
+'''
+1. Separate plugin resolver from the Default
+2. Create a resolver that gets plugin and blueprint resolver
+3. Write the blu resolver
+'''
+class ResolverWithBlueprints(DefaultImportResolver):
+    """A resolver which translates plugin-style urls to file:// urls.
+
+    The URL: `plugin:cloudify-openstack-plugin/2.0.1` will be
+    translated to: `file:///opt/manager/resources/plugins/<id>`, where <id>
+    is the id of the plugin looked up for the current tenant.
+
+    The version is optional
+    """
+    pass
