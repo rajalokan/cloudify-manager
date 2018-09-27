@@ -1,0 +1,8 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+imports:
+    - blueprint:blueprint_with_substitution_mapping
+
+node_templates:
+    vm:
+        type: cloudify.nodes.Compute

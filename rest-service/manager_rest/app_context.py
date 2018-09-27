@@ -30,7 +30,7 @@ from manager_rest.storage import get_storage_manager
 from manager_rest.constants import (
     PROVIDER_CONTEXT_ID,
     FILE_SERVER_PLUGINS_FOLDER,
-    FILE_SERVER_UPLOADED_BLUEPRINTS_FOLDER
+    FILE_SERVER_BLUEPRINTS_FOLDER
 )
 from manager_rest.manager_exceptions import InvalidPluginError,\
     InvalidBlueprintError
@@ -151,10 +151,10 @@ class ResolverWithPlugins(DefaultImportResolver):
     def _make_blueprint_yaml_url(blueprint):
         blueprint_path = os.path.join(
             config.instance.file_server_root,
-            FILE_SERVER_UPLOADED_BLUEPRINTS_FOLDER,
+            FILE_SERVER_BLUEPRINTS_FOLDER,
+            blueprint.tenant_name,
             blueprint.id)
-        yaml_files = glob.glob(os.path.join(blueprint_path, '*.yaml'))
-        filename = os.path.join(blueprint_path, yaml_files[0])
+        filename = os.path.join(blueprint_path, blueprint.main_file_name)
         return 'file://{0}'.format(filename)
 
     def _make_plugin_yaml_url(self, plugin):
