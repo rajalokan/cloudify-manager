@@ -19,7 +19,7 @@ from flask import current_app
 from urlparse import parse_qs
 from distutils.version import LooseVersion
 
-from dsl_parser import constants
+from dsl_parser import constants, utils, parser
 from dsl_parser import utils as dsl_parser_utils
 from dsl_parser.import_resolver.default_import_resolver import (
     DefaultImportResolver
@@ -32,8 +32,7 @@ from manager_rest.constants import (
     FILE_SERVER_PLUGINS_FOLDER,
     FILE_SERVER_BLUEPRINTS_FOLDER
 )
-from manager_rest.manager_exceptions import InvalidPluginError,\
-    InvalidBlueprintError
+from manager_rest.manager_exceptions import InvalidPluginError
 from manager_rest.storage.models import ProviderContext, Plugin, Blueprint
 
 
@@ -83,6 +82,12 @@ class ResolverWithPlugins(DefaultImportResolver):
             import_url = self._resolve_plugin_yaml_url(import_url)
         elif self._is_blueprint_url(import_url):
             import_url = self._resolve_blueprint_yaml_url(import_url)
+            raw_yaml = super(ResolverWithPlugins, self).fetch_import(import_url)
+            return parser.parse(dsl_string=raw_yaml,
+                                dsl_location=import_url,
+                                resources_base_path=config.instance.file_server_root,
+                                resolver=self,
+                                return_resolved_blueprint=True)
         return super(ResolverWithPlugins, self).fetch_import(import_url)
 
     def _is_plugin_url(self, import_url):
@@ -130,9 +135,6 @@ class ResolverWithPlugins(DefaultImportResolver):
     def _find_blueprint(name):
         sm = get_storage_manager()
         blueprint = sm.get(Blueprint, name)
-        if not blueprint:
-            raise InvalidBlueprintError(
-                'Blueprint {0} not found'.format(name))
         return blueprint
 
     def _find_plugin(self, name, filters):
