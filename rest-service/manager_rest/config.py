@@ -76,6 +76,9 @@ class Config(object):
 
         self.warnings = []
 
+        self.enable_tracing = False
+        self.tracing_endpoint_ip = None
+
     def load_configuration(self):
         for env_var_name, namespace in CONFIG_TYPES:
             if env_var_name in os.environ:

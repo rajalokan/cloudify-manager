@@ -18,7 +18,7 @@ from functools import wraps
 from flask_restful import Resource
 from flask import request, current_app, Response, jsonify
 
-from manager_rest.utils import abort_error
+from manager_rest.utils import abort_error, traces
 from manager_rest.manager_exceptions import MissingPremiumPackage
 
 from .authentication import authenticator
@@ -26,6 +26,7 @@ from .authentication import authenticator
 
 def authenticate(func):
     @wraps(func)
+    @traces('authenticate')
     def wrapper(*args, **kwargs):
         auth_response = authenticator.authenticate(request)
         if isinstance(auth_response, Response):

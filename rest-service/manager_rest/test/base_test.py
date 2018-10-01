@@ -151,6 +151,7 @@ class BaseServerTestCase(unittest.TestCase):
         self._mock_amqp_modules()
 
         server_module = self._set_config_path_and_get_server_module()
+        self._patch_jaeger_config(server_module)
         self._create_config_and_reset_app(server_module)
         self._mock_get_encryption_key()
         self._handle_flask_app_and_db(server_module)
@@ -728,3 +729,8 @@ class BaseServerTestCase(unittest.TestCase):
             func,
             *args
         )
+
+    def _patch_jaeger_config(self, server_module):
+        server_module.Config = MagicMock()
+        self.jaeger_mock_config = server_module.Config
+        self.jaeger_mock_config.return_value = self.jaeger_mock_config

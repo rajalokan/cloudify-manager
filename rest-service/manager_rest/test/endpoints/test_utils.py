@@ -15,13 +15,15 @@
 
 import os
 
-from mock import patch
-from manager_rest.test.attribute import attr
+from flask import current_app
+from mock import patch, MagicMock
 
+from manager_rest.utils import traces
 from manager_rest.utils import read_json_file, write_dict_to_json_file
 from manager_rest.utils import plugin_installable_on_current_platform
-from manager_rest.test import base_test
 from manager_rest.storage import models
+from manager_rest.test import base_test
+from manager_rest.test.attribute import attr
 
 
 @attr(client_min_version=1, client_max_version=base_test.LATEST_API_VERSION)
@@ -94,6 +96,104 @@ class TestUtils(base_test.BaseServerTestCase):
                                        distribution_release=rel)
                 self.assertTrue(
                     plugin_installable_on_current_platform(plugin))
+
+    def test_tracing_wrapper_does_nothing(self):
+        # Dummy call to invoke the tracer initialization if enabled.
+        self.app.get('/')
+
+        foo = MagicMock(return_value='something')
+        foo.__name__ = 'foo'
+        app_patcher = patch('flask.current_app')
+        curr_span_patcher = patch(
+            'opentracing_instrumentation.request_context.get_current_span')
+        span_ctx_patcher = patch(
+            'opentracing_instrumentation.request_context.span_in_context')
+        current_app = app_patcher.start()
+        curr_span = curr_span_patcher.start()
+        span_ctx_patcher.start()
+
+        f = traces()(foo)
+        current_app.tracer = False
+        r = f('bar', k='v')
+        self.assertEqual(r, 'something')
+        foo.assert_called_once_with('bar', k='v')
+        curr_span.assert_not_called()
+
+        app_patcher.stop()
+        curr_span_patcher.stop()
+        span_ctx_patcher.stop()
+
+
+class TestUtilsWithTracingTestCase(base_test.BaseServerTestCase):
+    """Test the tracing wrapper when tracing is enabled.
+    """
+    _tracing_endpoint_ip = 'some_ip'
+
+    def setUp(self):
+        # old_traces = traces
+        # manager_rest.utils.traces = dummy_traces
+        super(TestUtilsWithTracingTestCase, self).setUp()
+        # Dummy call to invoke the tracer initialization if enabled.
+        self.app.get('/')
+        # Makes sure `traces` gets called only when the tests starts.
+        # manager_rest.utils.traces = old_traces
+
+    def create_configuration(self):
+        test_config = super(
+            TestUtilsWithTracingTestCase, self).create_configuration()
+        test_config.enable_tracing = True
+        test_config.tracing_endpoint_ip = self._tracing_endpoint_ip
+        return test_config
+
+    def test_tracing_wrapper_works(self):
+        foo = MagicMock(return_value='something')
+        foo.__name__ = 'foo'
+        curr_span_patcher = patch(
+            'manager_rest.utils.get_current_span')
+        curr_span = curr_span_patcher.start()
+        span_ctx_patcher = patch(
+            'manager_rest.utils.span_in_context')
+        span_ctx = span_ctx_patcher.start()
+
+        curr_span.return_value = curr_span
+        current_app.tracer.start_span.reset_mock()
+
+        f = traces('not_foo')(foo)
+        r = f('bar', k='v')
+        self.assertEqual(r, 'something')
+        foo.assert_called_once_with('bar', k='v')
+        curr_span.assert_called_once()
+        current_app.tracer.start_span.assert_called_once_with(
+            'not_foo', child_of=curr_span)
+        span_ctx.assert_called_once()
+
+        curr_span_patcher.stop()
+        span_ctx_patcher.stop()
+
+    def test_tracing_wrapper_works_no_name(self):
+        foo = MagicMock(return_value='something')
+        foo.__name__ = 'foo'
+        curr_span_patcher = patch(
+            'manager_rest.utils.get_current_span')
+        curr_span = curr_span_patcher.start()
+        span_ctx_patcher = patch(
+            'manager_rest.utils.span_in_context')
+        span_ctx = span_ctx_patcher.start()
+
+        curr_span.return_value = curr_span
+        current_app.tracer.start_span.reset_mock()
+
+        f = traces()(foo)
+        r = f('bar', k='v')
+        self.assertEqual(r, 'something')
+        foo.assert_called_once_with('bar', k='v')
+        curr_span.assert_called_once()
+        current_app.tracer.start_span.assert_called_once_with(
+            'foo', child_of=curr_span)
+        span_ctx.assert_called_once()
+
+        curr_span_patcher.stop()
+        span_ctx_patcher.stop()
 
 
 def generate_progress_func(total_size, assert_equal,
