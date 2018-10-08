@@ -532,4 +532,19 @@ class Operation(SQLResourceBase):
 
     execution_id = association_proxy('execution', 'id')
 
+
+class TasksGraph(SQLResourceBase):
+    __tablename__ = 'tasks_graphs'
+
+    name = db.Column(db.Text)
+    created_at = db.Column(UTCDateTime, nullable=False, index=True)
+
+    _execution_fk = foreign_key(Execution._storage_id)
+
+    @declared_attr
+    def execution(cls):
+        return one_to_many_relationship(cls, Execution, cls._execution_fk)
+
+    execution_id = association_proxy('execution', 'id')
+
 # endregion

@@ -43,5 +43,7 @@ from .blueprints import (                        # NOQA
 from .agents import Agents                       # NOQA
 from .operations import (                        # NOQA
     Operations,
-    OperationsId
+    OperationsId,
+    TasksGraphs,
+    TasksGraphsId
 )

@@ -78,3 +78,51 @@ class OperationsId(SecuredResource):
         instance = sm.get(models.Operation, operation_id, locking=True)
         instance.state = request_dict.get('state', instance.state)
         return sm.update(instance)
+
+
+class TasksGraphs(SecuredResource):
+    @exceptions_handled
+    @authorize('operations')
+    @marshal_with(models.TasksGraph)
+    @paginate
+    def get(self, _include=None, pagination=None, **kwargs):
+        args = get_args_and_verify_arguments([
+            Argument('execution_id', type=unicode, required=True)
+        ])
+        sm = get_storage_manager()
+        execution_id = args.get('execution_id')
+        execution = sm.list(models.Execution, filters={'id': execution_id})[0]
+        return sm.list(
+            models.TasksGraph,
+            filters={'execution': execution},
+            pagination=pagination
+        )
+
+
+class TasksGraphsId(SecuredResource):
+    @exceptions_handled
+    @authorize('operations')
+    @marshal_with(models.TasksGraph)
+    def put(self, tasks_graph_id, **kwargs):
+        params = get_json_and_verify_params({
+            'name': {'type': unicode, 'required': True},
+            'execution_id': {'type': unicode, 'required': True},
+        })
+        tasks_graph = get_resource_manager().create_operation(
+            tasks_graph_id,
+            name=params['name'],
+            execution_id=params['execution_id'],
+        )
+        return tasks_graph, 201
+
+    @exceptions_handled
+    @authorize('operations')
+    @marshal_with(models.TasksGraph)
+    def patch(self, tasks_graph_id, **kwargs):
+        request_dict = get_json_and_verify_params(
+            {'state': {'type': unicode}}
+        )
+        sm = get_storage_manager()
+        instance = sm.get(models.TasksGraph, tasks_graph_id, locking=True)
+        instance.state = request_dict.get('state', instance.state)
+        return sm.update(instance)
