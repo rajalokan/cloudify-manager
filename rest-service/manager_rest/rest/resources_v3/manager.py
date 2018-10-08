@@ -125,18 +125,19 @@ class LdapAuthentication(SecuredResource):
         for key, value in ldap_config.iteritems():
             setattr(config.instance, key, value)
 
-        # assert LDAP configuration is valid.
-        auth = LdapAuthentication()
-        auth.configure(current_app.logger)
-        try:
-            auth.authenticate_user(ldap_config.get('ldap_username'),
-                                   ldap_config.get('ldap_password'))
-        except UnauthorizedError:
-            # reload previous configuration.
-            config.instance.load_configuration()
-            raise BadParametersError(
-                'Failed setting LDAP authenticator: Invalid parameters '
-                'provided.')
+        # assert LDAP configuration is valid (if credential supplied).
+        if ldap_config['ldap_username']:
+            auth = LdapAuthentication()
+            auth.configure(current_app.logger)
+            try:
+                auth.authenticate_user(ldap_config.get('ldap_username'),
+                                       ldap_config.get('ldap_password'))
+            except UnauthorizedError:
+                # reload previous configuration.
+                config.instance.load_configuration()
+                raise BadParametersError(
+                    'Failed setting LDAP authenticator: Invalid parameters '
+                    'provided.')
 
         config.reset(config.instance, write=True)
 
@@ -169,11 +170,23 @@ class LdapAuthentication(SecuredResource):
             raise MethodNotAllowedError('LDAP is only supported in the '
                                         'Cloudify premium edition.')
         ldap_config = rest_utils.get_json_and_verify_params({
-            'ldap_server',
-            'ldap_username',
-            'ldap_password',
-            'ldap_domain',
-            'ldap_is_active_directory',
-            'ldap_dn_extra'
+            'ldap_server': {},
+            'ldap_username': {'optional': True},
+            'ldap_password': {'optional': True},
+            'ldap_domain': {},
+            'ldap_is_active_directory': {'optional': True, 'type': bool},
+            'ldap_dn_extra': {}
         })
+        ldap_config['ldap_username'] = ldap_config.get('ldap_username')
+        ldap_config['ldap_password'] = ldap_config.get('ldap_password')
+        ldap_config['ldap_is_active_directory'] = ldap_config.get(
+            'ldap_is_active_directory', False)
+
+        if ((ldap_config['ldap_username']
+             and not ldap_config['ldap_password'])
+            or (ldap_config['ldap_password']
+                and not ldap_config['ldap_username'])):
+            raise BadParametersError(
+                'Must supply either both username and password or neither')
+
         return ldap_config
