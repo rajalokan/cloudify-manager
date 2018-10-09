@@ -110,7 +110,7 @@ class TasksGraphsId(SecuredResource):
             'name': {'type': unicode, 'required': True},
             'execution_id': {'type': unicode, 'required': True},
         })
-        tasks_graph = get_resource_manager().create_operation(
+        tasks_graph = get_resource_manager().create_tasks_graph(
             tasks_graph_id,
             name=params['name'],
             execution_id=params['execution_id'],

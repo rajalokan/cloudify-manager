@@ -1260,6 +1260,22 @@ class ResourceManager(object):
         self.sm.put(operation)
         return operation
 
+    def create_tasks_graph(self, tasks_graph_id, name, execution_id):
+        execution = self.sm.list(models.Execution,
+                                 filters={'id': execution_id},
+                                 get_all_results=True,
+                                 all_tenants=True)[0]
+        graph = models.TasksGraph(
+            id=tasks_graph_id,
+            name=name,
+            _execution_fk=execution._storage_id,
+            created_at=utils.get_formatted_timestamp(),
+            _tenant_id=execution._tenant_id,
+            _creator_id=execution._creator_id
+        )
+        self.sm.put(graph)
+        return graph
+
     def list_agents(self, deployment_id=None, node_ids=None,
                     node_instance_ids=None, install_method=None):
         filters = {}
