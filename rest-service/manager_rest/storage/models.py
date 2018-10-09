@@ -38,4 +38,5 @@ from .resource_models import (Blueprint,
                               DeploymentModificationState,
                               DeploymentUpdateStep,
                               Secret,
-                              Operation)
+                              Operation,
+                              TasksGraph)
