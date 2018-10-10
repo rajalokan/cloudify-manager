@@ -21,6 +21,7 @@ from flask_restful import fields as flask_fields
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.dialects import postgresql
 
 from manager_rest import config
 from manager_rest.rest.responses import Workflow
@@ -525,6 +526,7 @@ class Operation(SQLResourceBase):
     created_at = db.Column(UTCDateTime, nullable=False, index=True)
 
     _execution_fk = foreign_key(Execution._storage_id)
+    dependencies = db.Column(postgresql.ARRAY(db.Text))
 
     @declared_attr
     def execution(cls):

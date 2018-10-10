@@ -1269,7 +1269,7 @@ class ResourceManager(object):
         # adding it to the response.
         instance_dict['resource_availability'] = resource_availability
 
-    def create_operation(self, operation_id, name, execution_id):
+    def create_operation(self, operation_id, name, execution_id, dependencies):
         execution = self.sm.list(models.Execution,
                                  filters={'id': execution_id},
                                  get_all_results=True,
@@ -1280,6 +1280,7 @@ class ResourceManager(object):
             _execution_fk=execution._storage_id,
             created_at=utils.get_formatted_timestamp(),
             state='started',
+            dependencies=dependencies,
             _tenant_id=execution._tenant_id,
             _creator_id=execution._creator_id
         )
