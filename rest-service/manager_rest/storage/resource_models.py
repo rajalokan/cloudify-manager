@@ -527,6 +527,8 @@ class Operation(SQLResourceBase):
 
     _execution_fk = foreign_key(Execution._storage_id)
     dependencies = db.Column(postgresql.ARRAY(db.Text))
+    type = db.Column(db.Text)
+    parameters = db.Column(JSONString)
 
     @declared_attr
     def execution(cls):
