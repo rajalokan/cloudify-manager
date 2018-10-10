@@ -131,7 +131,7 @@ class SQLModelBase(db.Model):
         'UTCDateTime': flask_fields.String,
         'Enum': flask_fields.String,
         'Boolean': flask_fields.Boolean,
-        'ARRAY': flask_fields.List
+        'ARRAY': lambda: flask_fields.List(flask_fields.String)
     }
 
     def to_dict(self, suppress_error=False):
