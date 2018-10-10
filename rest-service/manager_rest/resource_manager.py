@@ -456,6 +456,9 @@ class ResourceManager(object):
         execution = self.sm.list(
             models.Execution, filters={'id': execution_id},
             get_all_results=True)[0]
+        execution.status = ExecutionState.STARTED
+        self.sm.update(execution)
+
         workflow_id = execution.workflow_id
         deployment = execution.deployment
         blueprint = deployment.blueprint
